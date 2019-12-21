@@ -30,39 +30,12 @@ class ClusterNode:
 def build_cluster(points, depth=0):
     if len(points) < 10000:
         return None
-
     depth += 1
     clusterNode = ClusterNode(points)
     clusters = find_clusters(points) # list of list
-
     for cluster in clusters:
         clusterNode.clusters.append(build_cluster(cluster, depth))
-
     return clusterNode
-
-
-def build_tree(points,depth=0):
-    n = len(points)
-    if n <= 10000:
-        return None
-    clusters = find_clusters(points)
-    levels = []
-
-    for cluster in clusters:
-        result_d = build_tree(cluster)
-        if result_d:
-            levels.append(result_d)
-
-    return levels
-
-
-    # def subcluster(clusters):
-    #     for cluster in clusters:
-    #         build_tree(cluster,depth + 1)
-    #
-    # return {
-    #     'subclusters': subcluster(clusters)
-    # }
 
 #====== load pointclouds & build trees ======#
 print('#==== SCANS ====#')
@@ -80,8 +53,7 @@ for file in fileInDirList:
             split_line = line.split(' ')
             points.append([get_float(split_line[0]), get_float(split_line[1]), get_float(split_line[2]), get_float(split_line[3]), get_float(split_line[4]), get_float(split_line[5])])
             numPts += len(points)
-
-        print(filename + ': ' + str(build_cluster(points)))
+        print(filename + ': ' + '[' + str(build_cluster(points)) + ']')
 
 #====== match clusters ======#
 
