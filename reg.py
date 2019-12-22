@@ -1,7 +1,9 @@
-# from sklearn.cluster import OPTICS
 import numpy as np
 import open3d as o3d
 import os
+
+#====== params ======#
+MIN_PTS = 100000 # minimum number of points per clusterNode
 
 #====== metadata ======#
 numScans = 0
@@ -20,21 +22,22 @@ def find_clusters(points):
     return [points[:mid], points[mid + 1:]]
 
 class ClusterNode:
-    def __init__(self, points):
+    def __init__(self, points, depth):
         self.points = points
+        self.depth = depth
         self.clusters = []
 
     def __str__(self):
-        return "points: {} clusters: {}".format(len(self.points), len(self.clusters))
+        return "points: {} depth: {} clusters: {}".format(len(self.points), self.depth, len(self.clusters))
 
 def build_cluster(points, depth=0):
-    if len(points) < 10000:
+    if len(points) < MIN_PTS:
         return None
-    depth += 1
-    clusterNode = ClusterNode(points)
+    clusterNode = ClusterNode(points, depth)
     clusters = find_clusters(points) # list of list
     for cluster in clusters:
-        clusterNode.clusters.append(build_cluster(cluster, depth))
+        clusterNode.clusters.append(build_cluster(cluster, depth + 1))
+    print(clusterNode)
     return clusterNode
 
 #====== load pointclouds & build trees ======#
@@ -53,7 +56,9 @@ for file in fileInDirList:
             split_line = line.split(' ')
             points.append([get_float(split_line[0]), get_float(split_line[1]), get_float(split_line[2]), get_float(split_line[3]), get_float(split_line[4]), get_float(split_line[5])])
             numPts += len(points)
-        print(filename + ': ' + '[' + str(build_cluster(points)) + ']')
+        print(filename + ':')
+        build_cluster(points)
+        print('')
 
 #====== match clusters ======#
 
