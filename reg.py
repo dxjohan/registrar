@@ -1,11 +1,17 @@
-import numpy as np
+from pyclustering.cluster.optics import optics, ordering_analyser, ordering_visualizer
+from pyclustering.samples.definitions import SIMPLE_SAMPLES, FCPS_SAMPLES
+from pyclustering.utils import read_sample, timedcall
+from pyclustering.cluster import cluster_visualizer
 import open3d as o3d
+import numpy as np
+import random
 import os
 
 #====== params ======#
 MIN_PTS = 100000 # minimum number of points per clusterNode
 
 #====== metadata ======#
+dirPath = "C:/Users/Doxel Inc/Documents/registrar/scans/"
 numScans = 0
 numPts = 0
 
@@ -16,11 +22,6 @@ def get_float(st):
     else:
         return float(st)
 
-def find_clusters(points):
-    n = len(points)
-    mid = int(n / 2)
-    return [points[:mid], points[mid + 1:]]
-
 class ClusterNode:
     def __init__(self, points, depth):
         self.points = points
@@ -30,19 +31,23 @@ class ClusterNode:
     def __str__(self):
         return "points: {} depth: {} clusters: {}".format(len(self.points), self.depth, len(self.clusters))
 
-def build_cluster(points, depth=0):
+def find_clusters(points):
+    n = len(points)
+    mid = int(n / 2)
+    return [points[:mid], points[mid + 1:]]
+
+def build_tree(points, depth=0):
     if len(points) < MIN_PTS:
         return None
     clusterNode = ClusterNode(points, depth)
     clusters = find_clusters(points) # list of list
     for cluster in clusters:
-        clusterNode.clusters.append(build_cluster(cluster, depth + 1))
+        clusterNode.clusters.append(build_tree(cluster, depth + 1))
     print(clusterNode)
     return clusterNode
 
 #====== load pointclouds & build trees ======#
 print('#==== SCANS ====#')
-dirPath = "C:/Users/Doxel Inc/Documents/registrar/scans/"
 fileInDirList = os.listdir(dirPath)
 for file in fileInDirList:
     numScans += 1
@@ -57,7 +62,7 @@ for file in fileInDirList:
             points.append([get_float(split_line[0]), get_float(split_line[1]), get_float(split_line[2]), get_float(split_line[3]), get_float(split_line[4]), get_float(split_line[5])])
             numPts += len(points)
         print(filename + ':')
-        build_cluster(points)
+        build_tree(points)
         print('')
 
 #====== match clusters ======#
