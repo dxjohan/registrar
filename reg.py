@@ -33,17 +33,18 @@ def reformat(file):
 
 class ClusterNode:
     def __init__(self, points, depth):
-        self.points = points
         self.depth = depth
+        self.points = points
+        self.mean = points.mean(axis=0)
         self.clusters = []
 
     def __str__(self):
-        return "points: {} depth: {} clusters: {}".format(len(self.points), self.depth, len(self.clusters))
+        return "depth: {} points: {} mean: {} clusters: {}".format(self.depth, len(self.points), self.mean, len(self.clusters))
 
 def find_clusters(points):
     n = len(points)
     mid = int(n / 2)
-    return [points[:mid], points[mid + 1:]]
+    return [np.array(points[:mid]), np.array(points[mid + 1:])]
 
 def build_tree(points, depth=0):
     if len(points) < MIN_PTS:
