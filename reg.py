@@ -1,5 +1,4 @@
 from pyclustering.cluster.optics import optics, ordering_analyser, ordering_visualizer
-from pyclustering.samples.definitions import SIMPLE_SAMPLES, FCPS_SAMPLES
 from pyclustering.utils import read_sample, timedcall
 from pyclustering.cluster import cluster_visualizer
 import open3d as o3d
@@ -22,6 +21,16 @@ def get_float(st):
     else:
         return float(st)
 
+def reformat(file):
+    with open(file) as f:
+        content = f.read()
+        lines = content.splitlines(True)
+        points = []
+        for line in lines:
+            split_line = line.split(' ')
+            points.append([get_float(split_line[0]), get_float(split_line[1]), get_float(split_line[2]), get_float(split_line[3]), get_float(split_line[4]), get_float(split_line[5])])
+        return np.array(points)
+
 class ClusterNode:
     def __init__(self, points, depth):
         self.points = points
@@ -39,31 +48,23 @@ def find_clusters(points):
 def build_tree(points, depth=0):
     if len(points) < MIN_PTS:
         return None
-    clusterNode = ClusterNode(points, depth)
-    clusters = find_clusters(points) # list of list
+    cluster_node = ClusterNode(points, depth)
+    clusters = find_clusters(points)
     for cluster in clusters:
-        clusterNode.clusters.append(build_tree(cluster, depth + 1))
-    print(clusterNode)
-    return clusterNode
+        cluster_node.clusters.append(build_tree(cluster, depth + 1))
+    print(cluster_node)
+    return cluster_node
 
-#====== load pointclouds & build trees ======#
-print('#==== SCANS ====#')
+#====== build trees ======#
 fileInDirList = os.listdir(dirPath)
 for file in fileInDirList:
     numScans += 1
     filename = file.split('.')[0]
     outfile = dirPath + file
-    with open(outfile) as f:
-        content = f.read()
-        lines = content.splitlines(True)
-        points = []
-        for line in lines:
-            split_line = line.split(' ')
-            points.append([get_float(split_line[0]), get_float(split_line[1]), get_float(split_line[2]), get_float(split_line[3]), get_float(split_line[4]), get_float(split_line[5])])
-            numPts += len(points)
-        print(filename + ':')
-        build_tree(points)
-        print('')
+    points = reformat(outfile)
+    print(filename + ':')
+    build_tree(points)
+    print('')
 
 #====== match clusters ======#
 
